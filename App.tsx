@@ -52,34 +52,51 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Try to restore previous user
-    const savedUserId = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
-    if (savedUserId) {
-        const accountsStr = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
-        if (accountsStr) {
-            const accounts = JSON.parse(accountsStr);
-            if (accounts[savedUserId]) {
-                setCurrentUser(accounts[savedUserId]);
-                setAuthOpen(false);
+    try {
+        const savedUserId = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
+        if (savedUserId) {
+            const accountsStr = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+            if (accountsStr) {
+                const accounts = JSON.parse(accountsStr);
+                if (accounts[savedUserId]) {
+                    setCurrentUser(accounts[savedUserId]);
+                    setAuthOpen(false);
+                }
             }
         }
+    } catch (e) {
+        console.error("Failed to restore user session", e);
+        localStorage.removeItem(STORAGE_KEY_CURRENT_USER);
     }
   }, []);
 
   useEffect(() => {
       // Load Data based on user status
       if (currentUser && !currentUser.isGuest) {
-          const savedChats = localStorage.getItem(PREFIX_CHATS + currentUser.id);
-          if (savedChats) {
-              setSessions(JSON.parse(savedChats));
-          } else {
+          try {
+              const savedChats = localStorage.getItem(PREFIX_CHATS + currentUser.id);
+              if (savedChats) {
+                  setSessions(JSON.parse(savedChats));
+              } else {
+                  setSessions([]);
+              }
+          } catch (e) {
+              console.warn("Corrupt chat history, resetting.", e);
               setSessions([]);
           }
-          const savedSettings = localStorage.getItem(PREFIX_SETTINGS + currentUser.id);
-          if (savedSettings) {
-              setSettings({ ...DEFAULT_USER_SETTINGS, ...JSON.parse(savedSettings) });
-          } else {
+
+          try {
+              const savedSettings = localStorage.getItem(PREFIX_SETTINGS + currentUser.id);
+              if (savedSettings) {
+                  setSettings({ ...DEFAULT_USER_SETTINGS, ...JSON.parse(savedSettings) });
+              } else {
+                  setSettings(DEFAULT_USER_SETTINGS);
+              }
+          } catch (e) {
+              console.warn("Corrupt settings, resetting.", e);
               setSettings(DEFAULT_USER_SETTINGS);
           }
+          
           localStorage.setItem(STORAGE_KEY_CURRENT_USER, currentUser.id);
       } else {
           // Guest or Logout state: Do NOT load persistent data
@@ -110,13 +127,18 @@ const App: React.FC = () => {
 
   const handleLogin = (profile: UserProfile) => {
       // Create/Update Account in "Simulated DB"
-      const accountsStr = localStorage.getItem(STORAGE_KEY_ACCOUNTS) || '{}';
-      const accounts = JSON.parse(accountsStr);
-      accounts[profile.id] = { ...profile, isGuest: false };
-      localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
-      
-      setCurrentUser(profile);
-      setAuthOpen(false);
+      try {
+          const accountsStr = localStorage.getItem(STORAGE_KEY_ACCOUNTS) || '{}';
+          const accounts = JSON.parse(accountsStr);
+          accounts[profile.id] = { ...profile, isGuest: false };
+          localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
+          
+          setCurrentUser(profile);
+          setAuthOpen(false);
+      } catch (e) {
+          console.error("Login failed due to storage error", e);
+          alert("Could not save account data. Please clear browser data.");
+      }
   };
 
   const handleGuestAccess = () => {

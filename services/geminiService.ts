@@ -18,13 +18,13 @@ const getAIClient = async (requiresPaidKey: boolean = false) => {
   if (requiresPaidKey) {
     const win = window as any;
     if (win.aistudio && typeof win.aistudio.hasSelectedApiKey === 'function') {
-      const hasKey = await win.aistudio.hasSelectedApiKey();
-      if (!hasKey) {
-        try {
-            await win.aistudio.openSelectKey();
-        } catch (e) {
-            console.warn("AI Studio key selection failed or cancelled", e);
-        }
+      try {
+          const hasKey = await win.aistudio.hasSelectedApiKey();
+          if (!hasKey) {
+              await win.aistudio.openSelectKey();
+          }
+      } catch (e) {
+          console.warn("AI Studio key selection failed or cancelled", e);
       }
     }
   }
@@ -44,7 +44,13 @@ const getAIClient = async (requiresPaidKey: boolean = false) => {
 const checkUsageLimit = (): boolean => {
     const today = new Date().toDateString();
     const storageStr = localStorage.getItem(STORAGE_KEY_LIMITS);
-    let data = storageStr ? JSON.parse(storageStr) : { date: today, count: 0 };
+    let data;
+    try {
+        data = storageStr ? JSON.parse(storageStr) : { date: today, count: 0 };
+    } catch(e) {
+        // Reset if corrupt
+        data = { date: today, count: 0 };
+    }
 
     if (data.date !== today) {
         data = { date: today, count: 0 };
