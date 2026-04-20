@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Paperclip, Loader2, Sparkles, X, User, Copy, RefreshCw, Zap, BrainCircuit, BookOpen, Volume2, Play, Pause, Camera, Video, StopCircle, Plus, RefreshCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { ChatMessage, MessageRole, UserProfile } from '../types';
-import { CodenylLogo } from './CodenylLogo';
+import { SiboLogo } from './SiboLogo';
 import { PROMPT_LIBRARY } from '../constants';
 import { generateTTS } from '../services/geminiService';
 import { decodeAudioData } from '../services/audioUtils';
@@ -353,6 +353,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }
   };
 
+  const SuggestionCard = ({ text, onClick }: { text: string, onClick: () => void }) => (
+      <button 
+          onClick={onClick}
+          className="bg-gray-800/60 hover:bg-gray-700/80 p-3 rounded-xl border border-gray-700 hover:border-blue-500/50 transition-all text-left group"
+      >
+          <div className="flex items-center gap-2 mb-1">
+              <Sparkles size={14} className="text-blue-400 group-hover:text-blue-300" />
+              <span className="text-xs font-semibold text-gray-300 group-hover:text-white">Example</span>
+          </div>
+          <p className="text-sm text-gray-400 group-hover:text-gray-200 line-clamp-2">{text}</p>
+      </button>
+  );
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-sibo-dark text-gray-100 font-sans relative">
       
@@ -380,7 +393,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <div className="h-full flex flex-col items-center justify-center opacity-80 -mt-10">
                 <div className="relative mb-8">
                      <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-20 rounded-full animate-pulse-slow"></div>
-                     <CodenylLogo size={96} className="relative z-10 animate-blob" />
+                     <SiboLogo size={96} className="relative z-10 animate-blob" />
                 </div>
                 
                 <h1 className="text-3xl font-bold mb-1 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">SIBO</h1>
@@ -408,7 +421,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                      </div>
                  ) : (
                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                         <CodenylLogo size={20} />
+                         <SiboLogo size={20} />
                      </div>
                  )}
              </div>
@@ -476,7 +489,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {isProcessing && (
           <div className="max-w-4xl mx-auto w-full flex gap-6 animate-pulse">
              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                 <CodenylLogo size={20} />
+                 <SiboLogo size={20} />
              </div>
              <div className="flex items-center gap-1">
                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
@@ -661,46 +674,45 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                             handleSend();
                         }
                     }}
-                    placeholder={isProcessing ? "SIBO is thinking..." : `Message SIBO (${useProModel ? 'Pro' : 'Flash'})...`}
-                    className="flex-1 bg-transparent border-0 focus:ring-0 text-white placeholder-gray-400 resize-none py-3.5 px-2 max-h-32 min-h-[52px]"
+                    placeholder="Message SIBO..."
+                    className="flex-1 bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 resize-none max-h-32 py-3 px-2 custom-scrollbar"
                     rows={1}
                 />
-
+                
                 <div className="flex items-center gap-1 pb-1">
-                     <button 
-                        onClick={onStartVoiceMode}
-                        className="p-3 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-700/50"
-                        title="Voice Mode"
-                    >
-                        <Mic size={22} />
-                    </button>
-                    <button
-                        onClick={handleSend}
-                        disabled={(!input.trim() && selectedImages.length === 0 && selectedVideos.length === 0) || isProcessing}
-                        className={`p-2.5 rounded-full m-1 transition-all duration-300 ${
-                            (!input.trim() && selectedImages.length === 0 && selectedVideos.length === 0) || isProcessing 
-                            ? 'bg-gray-700 text-gray-500' 
-                            : 'bg-white text-black hover:scale-105'
-                        }`}
-                    >
-                        <Send size={18} fill={(!input.trim() && selectedImages.length === 0 && selectedVideos.length === 0) ? "none" : "currentColor"} />
-                    </button>
+                   {input.length === 0 && selectedImages.length === 0 && selectedVideos.length === 0 ? (
+                       <button 
+                            onClick={onStartVoiceMode}
+                            className="p-3 text-white bg-blue-600 hover:bg-blue-500 rounded-full transition-all hover:scale-105 shadow-lg shadow-blue-900/20"
+                            title="Live Voice Mode"
+                        >
+                            <Mic size={20} />
+                        </button>
+                   ) : (
+                       <button 
+                            onClick={handleSend}
+                            disabled={isProcessing}
+                            className={`p-3 rounded-full transition-all hover:scale-105 shadow-lg ${
+                                isProcessing 
+                                    ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20'
+                            }`}
+                        >
+                            {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                        </button>
+                   )}
                 </div>
            </div>
-           <div className="text-center mt-2 text-xs text-gray-500 flex justify-center items-center gap-2">
-               <span>Powered by</span> 
-               <span className="font-bold text-gray-400 flex items-center gap-1">CODENYL</span>
+           
+           <div className="text-center mt-3">
+               <p className="text-[10px] text-gray-500">
+                   SIBO can make mistakes. Please verify important information.
+               </p>
            </div>
         </div>
       </div>
     </div>
   );
 };
-
-const SuggestionCard = ({ text, onClick }: { text: string, onClick: () => void }) => (
-    <button onClick={onClick} className="text-left p-4 rounded-xl border border-gray-700/50 bg-gray-800/30 hover:bg-gray-800/80 hover:border-gray-600 transition-all text-sm text-gray-300">
-        {text}
-    </button>
-);
 
 export default ChatInterface;

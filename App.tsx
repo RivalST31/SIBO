@@ -8,7 +8,7 @@ import SettingsModal from './components/SettingsModal';
 import AuthModal from './components/AuthModal';
 import { generateTextResponse, generateImage, generateVideo, generateTTS } from './services/geminiService';
 import { ChatMessage, ChatSession, MessageRole, AppMode, UserSettings, UserProfile } from './types';
-import { CodenylLogo } from './components/CodenylLogo';
+import { SiboLogo } from './components/SiboLogo';
 import { useWakeWord } from './hooks/useWakeWord';
 import { 
     PREFIX_CHATS, 
@@ -408,7 +408,7 @@ const App: React.FC = () => {
           
           {/* Mobile centered branding */}
           <div className="pointer-events-auto flex items-center gap-2 md:hidden">
-               <CodenylLogo size={24} />
+               <SiboLogo size={24} />
                <span className="font-bold text-white tracking-wide text-sm">SIBO</span>
           </div>
           

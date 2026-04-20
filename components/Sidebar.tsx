@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Settings, Plus, X, LogIn, Trash2, LogOut, Download, Smartphone } from 'lucide-react';
 import { ChatSession, UserProfile } from '../types';
-import { CodenylLogo } from './CodenylLogo';
+import { SiboLogo } from './SiboLogo';
 import { APP_VERSION } from '../constants';
 
 interface SidebarProps {
@@ -36,7 +36,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     // 2. Listen for the 'beforeinstallprompt' event (Android/Chrome)
     const handleBeforeInstallPrompt = (e: any) => {
-      console.log('beforeinstallprompt fired');
       e.preventDefault();
       setInstallPrompt(e);
     };
@@ -54,12 +53,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             setInstallPrompt(null);
         }
     } else {
-        // Fallback instructions
-        const ua = navigator.userAgent.toLowerCase();
-        if (ua.includes('iphone') || ua.includes('ipad')) {
-             alert("To install SIBO on iOS:\n\n1. Tap the Share button in Safari\n2. Scroll down and select 'Add to Home Screen'");
+        // Fallback instructions if prompt event hasn't fired
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        
+        if (isIOS) {
+             alert("To install SIBO on iOS:\n\n1. Tap the Share button in Safari (box with arrow)\n2. Scroll down and select 'Add to Home Screen'");
         } else {
-             alert("Installation is not directly supported in this browser context.\n\nPlease open this site in Chrome or Edge and look for the 'Install SIBO' icon in the address bar.");
+             alert("To install SIBO:\n\n1. Look for the 'Install' icon in your browser's address bar.\n2. Or tap the browser menu (⋮) and select 'Install App' or 'Add to Home Screen'.");
         }
     }
   };
@@ -70,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="p-4 flex justify-between items-center gap-2">
              <div className="flex items-center gap-2 text-white font-bold tracking-wider">
-                 <CodenylLogo size={24} />
+                 <SiboLogo size={24} />
                  SIBO
              </div>
             <button onClick={onClose} className="md:hidden ml-auto text-gray-400 hover:text-white">
@@ -132,8 +132,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={handleInstallClick}
                     className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-gray-700 hover:bg-gray-800 text-gray-300 hover:text-white transition-all text-sm font-medium group"
                 >
-                    {installPrompt ? <Smartphone size={16} className="group-hover:animate-bounce" /> : <Download size={16} />} 
-                    <span>{installPrompt ? 'Install App' : 'Download App'}</span>
+                    {installPrompt ? <Download size={16} className="text-blue-400" /> : <Smartphone size={16} />} 
+                    <span>{installPrompt ? 'Install App' : 'Add to Home Screen'}</span>
                 </button>
             </div>
           )}

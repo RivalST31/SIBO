@@ -186,6 +186,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
                     <div>
                         <h4 className="text-white font-medium">Codenyl</h4>
+                        <div className="text-xs text-blue-300 mb-2 font-medium bg-blue-900/30 px-2 py-1 rounded border border-blue-500/20 inline-block">
+                             SI ("C" for Codenyl) + BO (Bot) = SIBO
+                        </div>
                         <p className="text-xs text-gray-400 mt-1 leading-relaxed">
                             Built by <strong>Aaradhy Mishra</strong>. SIBO focuses on privacy, speed, and helpfulness without ads or tracking.
                         </p>

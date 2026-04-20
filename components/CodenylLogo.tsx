@@ -10,19 +10,34 @@ export const CodenylLogo = ({ size = 24, className = "" }: { size?: number, clas
         className={className}
     >
         <defs>
-            <linearGradient id="codenylGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#8b5cf6" />
+            <linearGradient id="codenylBrandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#a855f7" />
             </linearGradient>
         </defs>
-        <circle cx="50" cy="50" r="45" stroke="url(#codenylGradient)" strokeWidth="8" />
+        
+        {/* Terminal Box Background (Optional, implicit in shape or explicit) */}
+        <rect x="10" y="15" width="80" height="70" rx="12" fill="url(#codenylBrandGradient)" opacity="0.1" />
+        <rect x="10" y="15" width="80" height="70" rx="12" stroke="url(#codenylBrandGradient)" strokeWidth="4" />
+
+        {/* The Prompt Symbol > */}
         <path 
-            d="M35 35 L65 35 L65 50 L45 50 L45 65 L65 65" 
+            d="M30 35 L50 50 L30 65" 
             stroke="white" 
             strokeWidth="8" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
         />
-        <circle cx="35" cy="35" r="5" fill="white" />
+        
+        {/* The Cursor _ */}
+        <line 
+            x1="58" 
+            y1="65" 
+            x2="78" 
+            y2="65" 
+            stroke="white" 
+            strokeWidth="8" 
+            strokeLinecap="round" 
+        />
     </svg>
 );
