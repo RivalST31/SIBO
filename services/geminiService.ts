@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+import { Type, Modality } from "@google/genai";
 import { 
   MODEL_TEXT_COMPLEX, 
   MODEL_TEXT_BASIC, 
@@ -12,32 +12,23 @@ import {
 } from '../constants';
 import { ChatMessage, MessageRole } from '../types';
 
-// Helper to ensure API Key logic
-const getAIClient = async (requiresPaidKey: boolean = false) => {
-  // If a paid key is strictly required (Veo, Imagen 3 Pro), try to trigger the selector
-  if (requiresPaidKey) {
-    const win = window as any;
-    if (win.aistudio && typeof win.aistudio.hasSelectedApiKey === 'function') {
-      try {
-          const hasKey = await win.aistudio.hasSelectedApiKey();
-          if (!hasKey) {
-              await win.aistudio.openSelectKey();
-          }
-      } catch (e) {
-          console.warn("AI Studio key selection failed or cancelled", e);
-      }
-    }
+// Helper to make fetch calls to our Cloudflare Pages Function endpoint
+const callAnalyzeApi = async (data: any): Promise<any> => {
+  const response = await fetch("/api/analyze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const message = errorData.error || "Could not contact Gemini. Please try again later.";
+    throw new Error(message);
   }
-  
-  // Use the environment variable injected by Vite/Netlify
-  const apiKey = process.env.API_KEY || "";
-  
-  if (!apiKey) {
-      console.error("API Key is missing. Ensure 'API_KEY' is set in your Netlify Site Configuration.");
-      throw new Error("System Configuration Error: API Key is missing.");
-  }
-  
-  return new GoogleGenAI({ apiKey: apiKey });
+
+  return response.json();
 };
 
 // Limit Logic
@@ -76,14 +67,11 @@ export const generateTextResponse = async (
 ): Promise<ChatMessage> => {
   
   try {
-    const ai = await getAIClient();
-
     // Choose model based on complexity and features
     let modelName = useThinking ? MODEL_TEXT_COMPLEX : MODEL_TEXT_BASIC;
     
     const tools: any[] = [];
     if (useGrounding && !useThinking) {
-        // Basic grounding
         tools.push({ googleSearch: {} });
     }
 
@@ -148,7 +136,9 @@ export const generateTextResponse = async (
 
     const config: any = {
       tools: tools.length > 0 ? tools : undefined,
-      systemInstruction: combinedInstructions
+      systemInstruction: {
+        parts: [{ text: combinedInstructions }]
+      }
     };
 
     if (isMapsQuery) {
@@ -173,11 +163,11 @@ export const generateTextResponse = async (
         config.thinkingConfig = { thinkingBudget: 8192 };
     }
 
-    // Call API Directly Client-Side
-    const response = await ai.models.generateContent({
+    // Call API via Cloudflare Pages Function proxy
+    const response = await callAnalyzeApi({
       model: modelName,
       contents: contents,
-      config: config
+      ...config
     });
 
     // Parse response
@@ -202,20 +192,7 @@ export const generateTextResponse = async (
   } catch (error: any) {
     console.error("GenAI Error:", error);
     
-    let userMessage = "";
-    
-    if (error.message && (error.message.includes('403') || error.message.includes('API key'))) {
-        userMessage = "Access denied (403). The API Key is invalid or expired. Please check your Netlify environment variables.";
-    } else if (error.message && error.message.includes('503')) {
-        userMessage = "The AI service is currently overloaded (503). Please try again in a moment.";
-    } else if (error.message && error.message.includes('429')) {
-        userMessage = "You have exceeded the rate limit (429). Please wait a while before sending more messages.";
-    } else if (error.message && error.message.includes('fetch')) {
-        userMessage = "Network error. Please check your internet connection.";
-    } else {
-        // Show the actual error to help debugging
-        userMessage = `Connection Error: ${error.message || "Unknown error"}.`;
-    }
+    const userMessage = error.message || "Could not contact Gemini. Please try again later.";
 
     return {
       id: Date.now().toString(),
@@ -231,17 +208,13 @@ export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K' = '
       throw new Error("Daily generation limit reached (10/day). Come back tomorrow!");
   }
 
-  const ai = await getAIClient(true); 
-  
   try {
-    const response = await ai.models.generateContent({
+    const response = await callAnalyzeApi({
       model: MODEL_IMAGE_GEN_PRO,
       contents: { parts: [{ text: prompt }] },
-      config: {
-        imageConfig: {
-          imageSize: size,
-          aspectRatio: '1:1'
-        }
+      imageConfig: {
+        imageSize: size,
+        aspectRatio: '1:1'
       }
     });
 
@@ -253,7 +226,7 @@ export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K' = '
     return null;
   } catch (e: any) {
     console.error("Image Gen Error", e);
-    throw new Error(`Image generation failed: ${e.message}`);
+    throw new Error(e.message || "Could not contact Gemini. Please try again later.");
   }
 };
 
@@ -262,13 +235,12 @@ export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16'
       throw new Error("Daily generation limit reached (10/day). Come back tomorrow!");
   }
 
-  const ai = await getAIClient(true);
-
   try {
-    let operation = await ai.models.generateVideos({
+    let operation = await callAnalyzeApi({
       model: MODEL_VIDEO_GEN,
+      endpoint: "generateVideos",
       prompt: prompt,
-      config: {
+      videoConfig: {
         numberOfVideos: 1,
         resolution: '720p',
         aspectRatio: aspectRatio
@@ -278,19 +250,19 @@ export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16'
     // Wait loop with better error handling for operation state
     while (!operation.done) {
       await new Promise(resolve => setTimeout(resolve, 5000));
-      operation = await ai.operations.getVideosOperation({ operation: operation });
+      operation = await callAnalyzeApi({
+        operationName: operation.name
+      });
     }
 
     // Check if operation was successful before accessing
     if (operation.response?.generatedVideos?.[0]?.video?.uri) {
-      const uri = operation.response.generatedVideos[0].video.uri;
-      const key = process.env.API_KEY || "";
-      return `${uri}&key=${key}`;
+      return operation.response.generatedVideos[0].video.uri;
     }
     return null;
   } catch (e: any) {
     console.error("Video Gen Error", e);
-    throw new Error(`Video generation failed: ${e.message}`);
+    throw new Error(e.message || "Could not contact Gemini. Please try again later.");
   }
 };
 
@@ -305,17 +277,14 @@ export const generateTTS = async (text: string, voiceName: string = 'Kore'): Pro
         .replace(/sibo/g, "see-bo")
         .replace(/Aaradhy/gi, "Ah-rad-hee");
 
-    const ai = await getAIClient();
     try {
-        const response = await ai.models.generateContent({
+        const response = await callAnalyzeApi({
             model: MODEL_TTS,
             contents: [{ parts: [{ text: processedText }] }],
-            config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: voiceName }
-                    }
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: voiceName }
                 }
             }
         });

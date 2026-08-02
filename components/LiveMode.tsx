@@ -57,7 +57,15 @@ const LiveMode: React.FC<LiveModeProps> = ({ onClose, voiceName }) => {
       // NOTE: Live API (WebSockets) requires direct connection or a dedicated WebSocket proxy.
       // Netlify Functions (stateless) cannot easily proxy this. 
       // We connect client-side but use the API key securely injected via env vars during build.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // To ensure absolute security and follow your configuration requirements,
+      // SIBO never exposes the GEMINI_API_KEY to the frontend or browser.
+      // Client-side WebSockets would require exposing the key to the browser,
+      // so this is disabled to protect your credentials.
+      const apiKey = ""; 
+      if (!apiKey) {
+         throw new Error("Security Notice: Live Voice Mode requires a stateful WebSocket server to proxy credentials. Please use SIBO's standard chat interface, which is fully secured via the Cloudflare Pages Function proxy.");
+      }
+      const ai = new GoogleGenAI({ apiKey });
 
       // 1. Get User Media
       let stream: MediaStream;

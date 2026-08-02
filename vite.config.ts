@@ -12,9 +12,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Correctly stringify the key for replacement
-      'process.env.API_KEY': JSON.stringify(apiKey),
-      // Polyfill process.env for other libraries, but API_KEY specific replacement above takes precedence
       'process.env': {}
     },
     server: {
