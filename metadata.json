@@ -6,5 +6,6 @@
     "microphone",
     "camera",
     "geolocation"
-  ]
+  ],
+  "majorCapabilities": []
 }
