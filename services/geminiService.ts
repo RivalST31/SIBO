@@ -12,8 +12,18 @@ import {
 } from '../constants';
 import { ChatMessage, MessageRole } from '../types';
 
+const isPreviewMode = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host.includes("run.app") || host === "localhost" || host === "127.0.0.1";
+};
+
 // Helper to make fetch calls to our Cloudflare Pages Function endpoint
 const callAnalyzeApi = async (data: any): Promise<any> => {
+  if (isPreviewMode()) {
+    throw new Error("AI preview is unavailable in AI Studio. Test on the deployed Cloudflare Pages site.");
+  }
+
   const response = await fetch("/api/analyze", {
     method: "POST",
     headers: {
