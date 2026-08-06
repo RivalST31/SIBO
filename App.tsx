@@ -24,14 +24,35 @@ const App: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<AppMode>(AppMode.CHAT);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(true); // Open auth by default
+  const [authOpen, setAuthOpen] = useState(false); // Closed by default
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Model State (Flash vs Pro)
   const [useProModel, setUseProModel] = useState(false);
 
   // Data State
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+        const savedUserId = localStorage.getItem(STORAGE_KEY_CURRENT_USER);
+        if (savedUserId) {
+            const accountsStr = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+            if (accountsStr) {
+                const accounts = JSON.parse(accountsStr);
+                if (accounts[savedUserId]) {
+                    return accounts[savedUserId];
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Failed to restore user session in initializer", e);
+    }
+    return {
+        id: 'guest',
+        name: 'Guest',
+        email: '',
+        isGuest: true
+    };
+  });
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);

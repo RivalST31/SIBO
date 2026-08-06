@@ -7,7 +7,7 @@ const isPreviewMode = (): boolean => {
   return host.includes("run.app") || host === "localhost" || host === "127.0.0.1";
 };
 
-// Limit Logic
+// Limit Logic - Enforce no limit for unlimited messages
 const checkUsageLimit = (): boolean => {
   const today = new Date().toDateString();
   const storageStr = localStorage.getItem(STORAGE_KEY_LIMITS);
@@ -22,10 +22,7 @@ const checkUsageLimit = (): boolean => {
     data = { date: today, count: 0 };
   }
 
-  if (data.count >= DAILY_GEN_LIMIT) {
-    return false;
-  }
-
+  // Always increment but never limit
   data.count++;
   localStorage.setItem(STORAGE_KEY_LIMITS, JSON.stringify(data));
   return true;
