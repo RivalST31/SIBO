@@ -1,8 +1,6 @@
 // Simple Service Worker for SIBO PWA
-const CACHE_NAME = 'sibo-cache-v1';
+const CACHE_NAME = 'sibo-cache-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
   '/manifest.json'
 ];
 

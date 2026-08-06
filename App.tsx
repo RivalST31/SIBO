@@ -19,6 +19,7 @@ import {
 } from './constants';
 
 const App: React.FC = () => {
+  console.log("[App] Component rendering cycle started.");
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<AppMode>(AppMode.CHAT);
