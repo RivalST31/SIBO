@@ -40,15 +40,6 @@ export const generateTextResponse = async (
   useGrounding: boolean = true,
   systemInstruction: string = ''
 ): Promise<ChatMessage> => {
-  if (isPreviewMode()) {
-    return {
-      id: Date.now().toString(),
-      role: MessageRole.MODEL,
-      text: "AI preview is unavailable in AI Studio. Test on the deployed Cloudflare Pages site.",
-      timestamp: Date.now()
-    };
-  }
-
   if (!checkUsageLimit()) {
     return {
       id: Date.now().toString(),
@@ -70,7 +61,8 @@ export const generateTextResponse = async (
           role: msg.role,
           text: msg.text
         })),
-        mode: useThinking ? "thinking" : "lightning"
+        mode: useThinking ? "thinking" : "lightning",
+        systemInstruction
       })
     });
 
