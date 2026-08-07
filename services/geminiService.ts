@@ -41,7 +41,7 @@ export const generateTextResponse = async (
     return {
       id: Date.now().toString(),
       role: MessageRole.MODEL,
-      text: "Daily generation limit reached (10/day). Come back tomorrow!",
+      text: "I'm tierd now, try again later.",
       timestamp: Date.now()
     };
   }
@@ -65,7 +65,7 @@ export const generateTextResponse = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const message = errorData.error || "Could not contact Gemini. Please try again later.";
+      const message = errorData.error || "I'm tierd now, try again later.";
       throw new Error(message);
     }
 
@@ -73,12 +73,12 @@ export const generateTextResponse = async (
     return {
       id: Date.now().toString(),
       role: MessageRole.MODEL,
-      text: data.text || "No response generated.",
+      text: data.text || "I'm tierd now, try again later.",
       timestamp: Date.now()
     };
   } catch (error: any) {
     console.error("GenAI Error:", error);
-    const userMessage = error.message || "Could not contact Gemini. Please try again later.";
+    const userMessage = error.message || "I'm tierd now, try again later.";
     return {
       id: Date.now().toString(),
       role: MessageRole.MODEL,
@@ -89,11 +89,11 @@ export const generateTextResponse = async (
 };
 
 export const generateImage = async (prompt: string, size: '1K' | '2K' | '4K' = '1K'): Promise<string | null> => {
-  throw new Error("AI preview is unavailable in AI Studio. Test on the deployed Cloudflare Pages site.");
+  throw new Error("I'm tierd now, try again later.");
 };
 
 export const generateVideo = async (prompt: string, aspectRatio: '16:9' | '9:16' = '16:9'): Promise<string | null> => {
-  throw new Error("AI preview is unavailable in AI Studio. Test on the deployed Cloudflare Pages site.");
+  throw new Error("I'm tierd now, try again later.");
 };
 
 export const generateTTS = async (text: string, voiceName: string = 'Kore'): Promise<ArrayBuffer | null> => {

@@ -1,7 +1,7 @@
 export async function onRequest() {
   return new Response(
     JSON.stringify({
-      error: "Analyze endpoint is disabled."
+      error: "I'm tierd now, try again later."
     }),
     {
       status: 404,
